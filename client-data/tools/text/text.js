@@ -60,7 +60,7 @@
     stopEdit();
     isEdit = false;
     curText.x = x;
-    curText.y = y + Tools.getFontSize() / 2;
+    curText.y = y;
     curText.id = Tools.generateUID();
     curText.color = Tools.getColor();
 		startEdit();
@@ -118,7 +118,7 @@
 			if (curTextEl) {
 				parentHeight = curTextEl.childNodes[0].clientHeight;
 				parentWidth = curTextEl.childNodes[0].clientWidth;
-				input.style.top = (curText.y + curTextEl.childNodes[0].clientHeight + Tools.getFontSize()) * Tools.getScale() + 'px';
+				input.style.top = (curText.y + getActualHeight(curTextEl) * 1.2 + 5) * Tools.getScale() + 'px';
 			}
 			curText.parentWidth = parentWidth;
 			curText.parentHeight = parentHeight;
@@ -155,12 +155,13 @@ function stopEdit() {
 				createTextField(data);
 				// break;
 			case "update":
-				var textField = document.getElementById(data.id).childNodes[0];
+				var curTextEl = document.getElementById(data.id);
+				var textField = curTextEl.childNodes[0];
 				if (textField === null) {
 					console.error("Text: Hmmm... I received text that belongs to an unknown text field");
 					return false;
 				}
-				updateText(textField, data.text, document.getElementById(data.id));
+				updateText(textField, data.text, curTextEl);
 
 				// Update Parent dimension after currText updated
 				data.parentWidth = textField.clientWidth;
@@ -170,7 +171,7 @@ function stopEdit() {
 				 * Update Textarea's position after currText updated 
 				 * so that the correct input's position instantly
 				 */
-				input.style.top = (curText.y + textField.clientHeight + Tools.getFontSize()) * Tools.getScale() + 'px';
+				input.style.top = (curText.y + getActualHeight(curTextEl) * 1.2 + 5) * Tools.getScale() + 'px';
 
 				/*
 				 * When parent's dimension is zero, 
@@ -179,7 +180,7 @@ function stopEdit() {
         		document.getElementById(data.id).setAttribute('height', data.parentHeight || 1);
 				document.getElementById(data.id).setAttribute('width', data.parentWidth || 1);
 				
-				textField.setAttribute("style", `font-family: ${data.fontName}; color: ${data.color}; font-size: ${data.fontSize}px;`);
+				textField.setAttribute("style", `font-family: ${data.fontName}; color: ${data.color}; font-size: ${data.fontSize}px; line-height: 1;`);
 				break;
 			default:
 				console.error("Text: Draw instruction with unknown type. ", data);
@@ -198,8 +199,7 @@ function stopEdit() {
 		elem.setAttribute("y", fieldData.y);
 		const textEl = document.createElement("pre");
 		elem.id = fieldData.id;
-     	textEl.setAttribute("style", `font-family: ${fieldData.fontName}; color: ${fieldData.color}; font-size: ${fieldData.fontSize}px;`);
-		if (fieldData.text) updateText(textEl, fieldData.text, elem);
+     	if (fieldData.text) updateText(textEl, fieldData.text, elem);
 		elem.appendChild(textEl);
 		elem.setAttribute('height', fieldData.parentHeight || 1);
 		elem.setAttribute('width', fieldData.parentWidth || 1);
@@ -208,6 +208,13 @@ function stopEdit() {
 		return elem;
 	}
 
+	function getActualHeight(el) {
+		var clientHeight = el.childNodes[0].clientHeight;
+		var clientWidth = el.childNodes[0].clientWidth;
+		if(el.transform.baseVal.length==0) return clientHeight;
+		var transform = el.transform.baseVal[0].matrix;
+		return transform.c * clientWidth + transform.d * clientHeight;
+	}
 	Tools.add({
 		"name": "Text",
 		"shortcut": "t",
