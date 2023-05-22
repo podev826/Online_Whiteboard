@@ -4,18 +4,37 @@ html, body, svg {
 	font-family: Liberation sans, sans-serif;
 }
 
+/* lora-500 - latin-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 500;
+  src: local(''),
+       url('../js/fonts/lora-v20-latin-ext-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../js/fonts/lora-v20-latin-ext-500.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* roboto-condensed-regular - latin-ext */
+@font-face {
+  font-family: 'Roboto Condensed';
+  font-style: normal;
+  font-weight: 400;
+  src: local(''),
+       url('../js/fonts/roboto-condensed-v19-latin-ext-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('../js/fonts/roboto-condensed-v19-latin-ext-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
 #canvas {
 	transform-origin: 0 0;
 	background-color: white;
 }
 
 #textToolInput {
-	min-width: 600px;
-	max-width: min(90vw, 600px);
+min-width: 300px;
+	max-width: min(90vw, 400px);
 	padding: 20px;
 	border: 2px solid black;
 	position: absolute;
-	font-family: Liberation sans, sans-serif;
 }
 
 #textToolInput {
@@ -30,6 +49,12 @@ pre {
 	width: fit-content;
 	width: -moz-fit-content;
 	margin: 0;
+	-webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #usercount{

@@ -94,11 +94,6 @@ class BoardData {
           continue;
         obj[i] = data[i];
       }
-      // if(obj.transform && data.x){
-      //   obj.x = (data.x - obj.transform.e) / obj.transform.a;
-      //   obj.y = (data.y - obj.transform.f) / obj.transform.d;
-      // }
-
     } else if (create || obj !== undefined) {
       this.board[id] = data;
     }

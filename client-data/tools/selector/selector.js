@@ -1,8 +1,8 @@
 /**
- *						  WHITEBOPHIR
+ *                        WHITEBOPHIR
  *********************************************************
- * @licstart  The following is the entire license notice for the 
- *	JavaScript code in this page.
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in this page.
  *
  * Copyright (C) 2013  Ophir LOJKINE
  *
@@ -27,18 +27,14 @@
 	var selectorStates = {
 		pointing: 0,
 		selecting: 1,
-		transform: 2,
-	};
-	var clicked = false;
-	var vector;
-	var angle = 0;
+		transform: 2
+	}
 	var selected = null;
 	var selected_els = [];
 	var selectionRect = createSelectorRect();
 	var selectionRectTransform;
 	var currentTransform = null;
 	var transform_elements = [];
-	var inv_transform_elements = [];
 	var selectorState = selectorStates.pointing;
 	var last_sent = 0;
 	var blockedSelectionButtons = Tools.server_config.BLOCKED_SELECTION_BUTTONS;
@@ -71,17 +67,7 @@
 				me.y.baseVal.value = bbox.r[1] + bbox.b[1] - me.origHeight / (2 * s);
 				me.style.display = "";
 			},
-			startScalingTransform),
-		createButton("rotate", "rotate", 14, 14,
-			function (me, bbox, s) {
-				me.width.baseVal.value = me.origWidth / s;
-				me.height.baseVal.value = me.origHeight / s;
-				me.x.baseVal.value = bbox.r[0] + bbox.a[0] - me.origWidth / (2 * s);
-				me.y.baseVal.value = bbox.r[1] - me.origHeight / (2 * s);
-				me.style.display = "";
-			},
-			startRotate
-		)
+			startScalingTransform)
 	];
 
 	for (i in blockedSelectionButtons) {
@@ -107,7 +93,7 @@
 		return target || el;
 	}
 
-		function deleteSelection() {
+	function deleteSelection() {
 		var msgs = selected_els.map(function (el) {
 			return ({
 				"type": "delete",
@@ -116,7 +102,7 @@
 		});
 		var data = {
 			_children: msgs
-		};
+		}
 		Tools.drawAndSend(data);
 		selected_els = [];
 		hideSelectionUI();
@@ -212,126 +198,6 @@
 		});
 		var tmatrix = get_transform_matrix(selectionRect);
 		selectionRectTransform = { x: tmatrix.e, y: tmatrix.f };
-		hideSelectionButtons();
-	}
-
-	function startRotate(x, y, evt) {
-		evt.preventDefault();
-		hideSelectionButtons();
-		selectorState = selectorStates.transform;
-		var bbox = selectionRect.transformedBBox();
-		selected = {
-			x: bbox.r[0],
-			y: bbox.r[1],
-			w: bbox.a[0],
-			h: bbox.b[1],
-		};
-		vector = [selected.w / 2, selected.h / 2 ];
-		transform_elements = selected_els.map(function (el) {
-			var tmatrix = get_transform_matrix(el);
-			return {
-				a: tmatrix.a, b: tmatrix.b, c: tmatrix.c,
-				d: tmatrix.d, e: tmatrix.e, f: tmatrix.f
-			};
-		});
-		inv_transform_elements = transform_elements.map(el_matrix => {
-			var matrix = [[el_matrix.a, el_matrix.c, el_matrix.e],
-			[el_matrix.b, el_matrix.d, el_matrix.f],
-			[0, 0, 1]];
-			return matInverse(matrix);
-		})
-		// console.log("inv", transform_elements, inv_transform_elements);
-		var tmatrix = get_transform_matrix(selectionRect);
-		selectionRectTransform = {
-			a: tmatrix.a, d: tmatrix.d,
-			e: tmatrix.e, f: tmatrix.f
-		};
-		currentTransform = rotateSelection;
-	}
-
-	function addSVGElement(x, y, evt) {
-		if (clicked && Tools.drawingArea.contains(evt.target)) {
-			var add_els = getParentMathematics(evt.target);
-			if (selected_els.indexOf(add_els) == -1) {
-
-				selected_els.push(add_els);
-				resetSelectionRect();
-				console.log("Add", add_els);
-			}
-		}
-	}
-
-	function removeSVGElement(x, y, evt) {
-		if (clicked && Tools.drawingArea.contains(evt.target)) {
-			var remove_els = getParentMathematics(evt.target);
-			var index;
-			console.log(selected_els);
-			if ((index = selected_els.indexOf(remove_els)) != -1) {
-
-				selected_els.splice(index, 1);
-				console.log("Remove", index, remove_els, selected_els);
-				resetSelectionRect();
-			}
-			if (selected_els.length == 0) {
-				hideSelectionUI();
-			}
-		}
-	}
-
-	function rotateSelection(x, y) {
-		var Cx = selected.x + selected.w / 2, Cy = selected.y + selected.h / 2;
-		
-		var V2 = [x - Cx, Cy -y];
-
-		var angle = Math.atan2(V2[1],V2[0]);
-		var _angle = Math.atan2(vector[1],vector[0]);
-		angle = _angle - angle;
-
-		var tmatrix = get_transform_matrix(selectionRect);
-		var msgs = selected_els.map(function (el, i) {
-			var old = transform_elements[i];
-
-			var curPos = matProduct(inv_transform_elements[i], [[Cx], [Cy], [1]]);
-			// console.log("inv", [Cx, Cy, 0], curPos);
-			var a = old.a * Math.cos(angle) + old.c * Math.sin(angle);
-			var b = old.b * Math.cos(angle) + old.d * Math.sin(angle);
-			var c = -old.a * Math.sin(angle) + old.c * Math.cos(angle);
-			var d = -old.b * Math.sin(angle) + old.d * Math.cos(angle);
-			var e = old.a * (-curPos[0][0] * Math.cos(angle) + curPos[1][0] * Math.sin(angle) + curPos[0][0])
-				+ old.c * (-curPos[0][0] * Math.sin(angle) - curPos[1][0] * Math.cos(angle) + curPos[1][0]) + old.e;
-			var f = old.b * (-curPos[0][0] * Math.cos(angle) + curPos[1][0] * Math.sin(angle) + curPos[0][0])
-				+ old.d * (-curPos[0][0] * Math.sin(angle) - curPos[1][0] * Math.cos(angle) + curPos[1][0]) + old.f;
-
-			return {
-				type: "update",
-				id: el.id,
-				transform: {
-					a: a,
-					b: b,
-					c: c,
-					d: d,
-					e: e,
-					f: f,
-				}
-			};
-		})
-		var msg = {
-			_children: msgs
-		};
-		tmatrix.a = Math.cos(angle);
-		tmatrix.b = Math.sin(angle);
-		tmatrix.c = -Math.sin(angle);
-		tmatrix.d = Math.cos(angle);
-		tmatrix.e = -Cx * Math.cos(angle) + Cy * Math.sin(angle) + Cx;
-		tmatrix.f = -Cx * Math.sin(angle) - Cy * Math.cos(angle) + Cy;
-		// angle = tangle;
-		var now = performance.now();
-		if (now - last_sent > 70) {
-			last_sent = now;
-			Tools.drawAndSend(msg);
-		} else {
-			draw(msg);
-		}
 	}
 
 	function startScalingTransform(x, y, evt) {
@@ -352,13 +218,6 @@
 				d: tmatrix.d, e: tmatrix.e, f: tmatrix.f
 			};
 		});
-		inv_transform_elements = transform_elements.map(el_matrix => {
-			var matrix = [[el_matrix.a, el_matrix.c, el_matrix.e],
-			[el_matrix.b, el_matrix.d, el_matrix.f],
-			[0, 0, 1]];
-			return matInverse(matrix);
-		})
-		console.log("inv", transform_elements, inv_transform_elements);
 		var tmatrix = get_transform_matrix(selectionRect);
 		selectionRectTransform = {
 			a: tmatrix.a, d: tmatrix.d,
@@ -369,7 +228,6 @@
 
 	function startSelector(x, y, evt) {
 		evt.preventDefault();
-
 		selected = { x: x, y: y };
 		selected_els = [];
 		selectorState = selectorStates.selecting;
@@ -400,12 +258,6 @@
 		var dy = y - selected.y;
 		var msgs = selected_els.map(function (el, i) {
 			var oldTransform = transform_elements[i];
-			var el_matrix = get_transform_matrix(el);
-			var matrix = [[el_matrix.a, el_matrix.c, el_matrix.e],
-			[el_matrix.b, el_matrix.d, el_matrix.f],
-			[0, 0, 1]]
-			var inv_matrix = matInverse(matrix);
-			// console.log("inv", matrix, inv_matrix);
 			return {
 				type: "update",
 				id: el.id,
@@ -488,14 +340,12 @@
 	}
 
 	function resetSelectionRect() {
-		if (!selected_els.length)
-			return;
-			var bbox = selectionRect.transformedBBox();
-			selectionRect.x.baseVal.value = bbox.r[0];
-			selectionRect.y.baseVal.value = bbox.r[1];
-			selectionRect.width.baseVal.value = bbox.a[0];
-			selectionRect.height.baseVal.value = bbox.b[1];
+		var bbox = selectionRect.transformedBBox();
 		var tmatrix = get_transform_matrix(selectionRect);
+		selectionRect.x.baseVal.value = bbox.r[0];
+		selectionRect.y.baseVal.value = bbox.r[1];
+		selectionRect.width.baseVal.value = bbox.a[0];
+		selectionRect.height.baseVal.value = bbox.b[1];
 		tmatrix.a = 1; tmatrix.b = 0; tmatrix.c = 0;
 		tmatrix.d = 1; tmatrix.e = 0; tmatrix.f = 0;
 	}
@@ -526,7 +376,6 @@
 		else {
 			switch (data.type) {
 				case "update":
-					// console.log("update", data);
 					var elem = Tools.svg.getElementById(data.id);
 					if (!elem) throw new Error("Mover: Tried to move an element that does not exist.");
 					var tmatrix = get_transform_matrix(elem);
@@ -542,7 +391,7 @@
 				case "delete":
 					data.tool = "Eraser";
 					messageForTool(data);
-					break;	
+					break;
 				default:
 					throw new Error("Mover: 'move' instruction with unknown type. ", data);
 			}
@@ -559,54 +408,40 @@
 		if (button) {
 			button.clickCallback(x, y, evt);
 		} else if (pointInTransformedBBox([x, y], selectionRect.transformedBBox())) {
-				hideSelectionButtons();
-				startMovingElements(x, y, evt);
+			hideSelectionButtons();
+			startMovingElements(x, y, evt);
+		} else if (Tools.drawingArea.contains(evt.target)) {
+			hideSelectionUI();
+			selected_els = [getParentMathematics(evt.target)];
+			startMovingElements(x, y, evt);
 		} else {
-		if (Tools.drawingArea.contains(evt.target)) {
-				hideSelectionUI();
-				selected_els = [getParentMathematics(evt.target)];
-				startMovingElements(x, y, evt);
-			} else {
-				hideSelectionButtons();
-				startSelector(x, y, evt);
-			}
+			hideSelectionButtons();
+			startSelector(x, y, evt);
 		}
 	}
 
 	function releaseSelector(x, y, evt) {
 		if (selectorState == selectorStates.selecting) {
-
 			selected_els = calculateSelection();
-			resetSelectionRect();
-			angle = 0;
 			if (selected_els.length == 0) {
 				hideSelectionUI();
-				transform_elements = [];
 			}
-
-		}
-		if (selectorState == selectorStates.transform) {
+		} else if (selectorState == selectorStates.transform)
 			resetSelectionRect();
-		}
 		if (selected_els.length != 0) showSelectionButtons();
-	
-			selectorState = selectorStates.pointing;
+		transform_elements = [];
+		selectorState = selectorStates.pointing;
 	}
 
 	function moveSelector(x, y, evt) {
 		if (selectorState == selectorStates.selecting) {
 			updateRect(x, y, selectionRect);
-		} else if (selectorState == selectorStates.remove) {
-			if (pointInTransformedBBox([x, y], selectionRect.transformedBBox()))
-				removeSVGElement(x, y, evt)
 		} else if (selectorState == selectorStates.transform && currentTransform) {
-
 			currentTransform(x, y);
 		}
 	}
 
 	function press(x, y, evt, isTouchEvent) {
-		clicked = true;
 		clickSelector(x, y, evt, isTouchEvent);
 	}
 
@@ -618,8 +453,6 @@
 		move(x, y, evt, isTouchEvent);
 		releaseSelector(x, y, evt, isTouchEvent);
 		selected = null;
-		origin_els = [];
-		clicked = false;
 	}
 
 	function deleteShortcut(e) {

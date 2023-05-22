@@ -489,9 +489,35 @@ function updateDocumentTitle() {
 		Tools.setScale(Tools.getScale() + 0.1);
 	}
 	
+	function createPNG() {
+	    var currentScale = Tools.getScale();
+        if (currentScale !== 1) {
+            Tools.setScale(1);
+        }
+	    var minX=Number.MAX_VALUE, maxX=0, minY=Number.MAX_VALUE, maxY=0;
+	    var div = Tools.svg.getElementById("drawingArea");
+        var r = div.getBoundingClientRect();
+        console.log(r)
+        
+        if(r.x < minX) minX = r.x;
+		if(r.x + r.width > maxX) maxX = r.x + r.width;
+		if (r.y < minY) minY = r.y;
+		if (r.y + r.height > maxY) maxY = r.y + r.height;
+		
+		var options = {
+			backgroundColor: "Tools.svg.style.backgroundColor",
+			encoderOptions: 1,
+			scale: 1,
+			top: (window.scrollY + minY) / Tools.getScale() - 20,
+			left: (window.scrollX + minX) / Tools.getScale() - 20,
+			width: (maxX - minX) + 40,
+			height: (maxY - minY) + 40
+			};		
+			saveSvgAsPng(document.getElementById("canvas"), "Whiteboard.png", options);
+    }  
 	
 	function sendClearBoard() {
-		const needClear = confirm('Czy na pewno zetrzeć całą tablicę?');
+		const needClear = confirm('Are you sure?');
 		if (needClear) {
 			Tools.drawAndSend({
 				'type': 'clearBoard',
@@ -505,6 +531,7 @@ function updateDocumentTitle() {
 	document.getElementById('plusScale').addEventListener('click', plusScale, false);
 	
 	document.getElementById('clearBoard').addEventListener('click', sendClearBoard, false);
+	document.getElementById('savePNG').addEventListener('click', createPNG, false);
 
 	window.addEventListener("hashchange", setScrollFromHash, false);
 	window.addEventListener("popstate", setScrollFromHash, false);
